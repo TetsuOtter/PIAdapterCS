@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30517.126
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PIAdapterCS", "PIAdapterCS\PIAdapterCS.csproj", "{B6DFAEAD-E880-4F05-BC88-DB682891E814}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PIAdapterCS", "PIAdapterCS\PIAdapterCS.csproj", "{B6DFAEAD-E880-4F05-BC88-DB682891E814}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PIAdapterCS.Loader", "PIAdapterCS.Loader\PIAdapterCS.Loader.csproj", "{7A1F67CD-8F39-4FE7-8360-72ABF54E024E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{B6DFAEAD-E880-4F05-BC88-DB682891E814}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6DFAEAD-E880-4F05-BC88-DB682891E814}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B6DFAEAD-E880-4F05-BC88-DB682891E814}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A1F67CD-8F39-4FE7-8360-72ABF54E024E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A1F67CD-8F39-4FE7-8360-72ABF54E024E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A1F67CD-8F39-4FE7-8360-72ABF54E024E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A1F67CD-8F39-4FE7-8360-72ABF54E024E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
