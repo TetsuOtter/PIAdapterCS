@@ -1,94 +1,74 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace PIAdapterCS
 {
 	public class DifferentTargetATSPI : IAtsPI
 	{
-		PISyncer PIS;
-		public DifferentTargetATSPI(string ExecuteFile, string Args, PISyncer pis, int syncer_index)
+		readonly PISyncer PIS;
+		readonly int ind;
+		readonly Process process;
+		private void ExecFunc(SyncerFlags flag)
 		{
+			PIS.SetSyncerFlag(ind, flag);
 
+			for (int Count = 0; Count < ConstValues.WaitCountMS && PIS.IsSyncerFlagRaised(ind,flag); Count++)
+				Task.Delay(1);//タスクの終了待機
 		}
+
+		public DifferentTargetATSPI(in string ExecuteFile, in string Args, in PISyncer pis, in int syncer_index)
+		{
+			PIS = pis;
+			ind = syncer_index;
+			process = Process.Start(new ProcessStartInfo() { FileName = ExecuteFile, Arguments = Args }) ?? throw new InvalidOperationException();
+		}
+
 		public void Dispose()
 		{
-			throw new NotImplementedException();
+			ExecFunc(SyncerFlags.Dispose);
+			if (!process.HasExited)//まだ終了してないなら
+				process.WaitForExit(ConstValues.WaitCountMS);
+
+			process.Dispose();
 		}
 
-		public void DoorClose()
-		{
-			throw new NotImplementedException();
-		}
+		public void DoorClose() => ExecFunc(SyncerFlags.DoorClose);
 
-		public void DoorOpen()
-		{
-			throw new NotImplementedException();
-		}
+		public void DoorOpen() => ExecFunc(SyncerFlags.DoorOpen);
 
 		public Hand Elapse(State s, IntPtr Pa, IntPtr So)
 		{
-			throw new NotImplementedException();
+			ExecFunc(SyncerFlags.Elapse);
+			return PIS.GetHandle();
 		}
 
 		public uint GetPluginVersion()
 		{
-			throw new NotImplementedException();
+			ExecFunc(SyncerFlags.GetPluginVersion);
+			return ConstValues.ATSPI_IF_GetPIVersion;
 		}
 
-		public void HornBlow(int k)
-		{
-			throw new NotImplementedException();
-		}
+		public void HornBlow(int k) => ExecFunc(SyncerFlags.HornBlow);
 
-		public void Initialize(int s)
-		{
-			throw new NotImplementedException();
-		}
+		public void Initialize(int s) => ExecFunc(SyncerFlags.Initialize);
 
-		public void KeyDown(int k)
-		{
-			throw new NotImplementedException();
-		}
+		public void KeyDown(int k) => ExecFunc(SyncerFlags.KeyDown);
 
-		public void KeyUp(int k)
-		{
-			throw new NotImplementedException();
-		}
+		public void KeyUp(int k) => ExecFunc(SyncerFlags.KeyUp);
 
-		public void Load()
-		{
-			throw new NotImplementedException();
-		}
+		public void Load() => ExecFunc(SyncerFlags.Load);
 
-		public void SetBeaconData(Beacon b)
-		{
-			throw new NotImplementedException();
-		}
+		public void SetBeaconData(Beacon b) => ExecFunc(SyncerFlags.SetBeaconData);
 
-		public void SetBrake(int b)
-		{
-			throw new NotImplementedException();
-		}
+		public void SetBrake(int b) => ExecFunc(SyncerFlags.SetBrake);
 
-		public void SetPower(int p)
-		{
-			throw new NotImplementedException();
-		}
+		public void SetPower(int p) => ExecFunc(SyncerFlags.SetPower);
 
-		public void SetReverser(int r)
-		{
-			throw new NotImplementedException();
-		}
+		public void SetReverser(int r) => ExecFunc(SyncerFlags.SetReverser);
 
-		public void SetSignal(int s)
-		{
-			throw new NotImplementedException();
-		}
+		public void SetSignal(int s) => ExecFunc(SyncerFlags.SetSignal);
 
-		public void SetVehicleSpec(Spec s)
-		{
-			throw new NotImplementedException();
-		}
+		public void SetVehicleSpec(Spec s) => ExecFunc(SyncerFlags.SetVehicleSpec);
 	}
 }
