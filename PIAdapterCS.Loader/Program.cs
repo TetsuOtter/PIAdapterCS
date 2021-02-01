@@ -19,6 +19,8 @@ namespace PIAdapterCS.Loader
 
 			string ModPath = string.Empty;
 			string MMFPath = string.Empty;
+			int PIAdapterVersion = 0;
+			int SyncerIndex = -1;
 
 			for(int i = 0; i < args.Length; i++)
 			{
@@ -32,23 +34,32 @@ namespace PIAdapterCS.Loader
 					case "-modu":
 					case "-modul":
 					case "-module":
-
-						IsModPathSet = true;
+						if ((i + 1) < args.Length)
+						{
+							ModPath = args[++i];
+							IsModPathSet = true;
+						}
 						break;
 
 					//MemoryMappedFileへのパス
 					case "-f":
 					case "-mmf":
 					case "-memorymappedfile":
-
-						IsMMFPathSet = true;
+						if ((i + 1) < args.Length)
+						{
+							MMFPath = args[++i];
+							IsMMFPathSet = true;
+						}
 						break;
 
 					//PIAdapterバージョン
 					case "-adpv":
 					case "-adapterversion":
-
-						IsAdapterVersionSet = true;
+						if ((i + 1) < args.Length && int.TryParse(args[i + 1], out PIAdapterVersion))
+						{
+							i++;
+							IsAdapterVersionSet = true;
+						}
 						break;
 
 					//Syncerでのindex
@@ -57,8 +68,11 @@ namespace PIAdapterCS.Loader
 					case "-ind":
 					case "-inde":
 					case "-index":
-
-						IsIndexSet = true;
+						if ((i + 1) < args.Length && int.TryParse(args[i + 1], out SyncerIndex) && SyncerIndex >= 0)
+						{
+							i++;
+							IsIndexSet = true;
+						}
 						break;
 				}
 			}
@@ -87,6 +101,54 @@ namespace PIAdapterCS.Loader
 
 				return;//エラー発生時は終了させる.
 			}
+
+			PISyncer pis = new PISyncer(MMFPath);
+			SameTargetATSPI pi = new SameTargetATSPI(ModPath);
+
+			void CheckExecFunc(in SyncerFlags f, in Action act)//引数のない処理を確認/実行
+			{
+				if (pis.IsSyncerFlagRaised(SyncerIndex, f)){
+					act.Invoke();
+					pis.SetSyncerFlagToLower(SyncerIndex, f);
+				}
+			}
+			void CheckExecFuncI(in SyncerFlags f, Action<int> act) => CheckExecFuncA(f, (a) => act.Invoke(a.intValue));//int型引数の処理を確認/実行
+			void CheckExecFuncA(in SyncerFlags f, in Action<ArgData> act)//引数をもつメソッドを確認/実行
+			{
+				if (pis.IsSyncerFlagRaised(SyncerIndex, f)){
+					act.Invoke(pis.TouchArgData());
+					pis.SetSyncerFlagToLower(SyncerIndex, f);
+				}
+			}
+
+			while (true)
+			{
+				if (pis.IsSyncerFlagRaised(SyncerIndex, SyncerFlags.Dispose))
+				{
+					pi.Dispose();
+					pis.SetSyncerFlagToLower(SyncerIndex, SyncerFlags.Dispose);
+					return;//Disposeで終了
+				}
+
+				CheckExecFunc(SyncerFlags.DoorClose, pi.DoorClose);
+				CheckExecFunc(SyncerFlags.DoorOpen, pi.DoorOpen);
+				CheckExecFunc(SyncerFlags.Elapse, () => pis.DoElapseFunc(pi.Elapse, ConstValues.PanelArrSize, ConstValues.SoundArrSize));
+				CheckExecFunc(SyncerFlags.GetPluginVersion, () => pi.GetPluginVersion());
+				CheckExecFuncI(SyncerFlags.HornBlow, pi.HornBlow);
+				CheckExecFuncI(SyncerFlags.Initialize, pi.Initialize);
+				CheckExecFuncI(SyncerFlags.KeyDown, pi.KeyDown);
+				CheckExecFuncI(SyncerFlags.KeyUp, pi.KeyUp);
+				CheckExecFunc(SyncerFlags.Load, pi.Load);
+				CheckExecFuncA(SyncerFlags.SetBeaconData, (a) => pi.SetBeaconData(a.beacon));
+				CheckExecFuncI(SyncerFlags.SetBrake, pi.SetBrake);
+				CheckExecFuncI(SyncerFlags.SetPower, pi.SetPower);
+				CheckExecFuncI(SyncerFlags.SetReverser, pi.SetReverser);
+				CheckExecFuncI(SyncerFlags.SetSignal, pi.SetSignal);
+				CheckExecFuncA(SyncerFlags.SetVehicleSpec, (a) => pi.SetVehicleSpec(a.spec));
+
+				System.Threading.Tasks.Task.Delay(1);
+			}
 		}
+
 	}
 }
