@@ -6,7 +6,7 @@ namespace PIAdapterCS
 {
 	public class PISyncer : IDisposable
 	{
-		MemoryMappedFile MMF_Flags, MMF_PanelD, MMF_SoundD, MMF_ArgData, MMF_Handle;
+		readonly MemoryMappedFile MMF_Flags, MMF_PanelD, MMF_SoundD, MMF_ArgData, MMF_Handle;
 		private bool disposedValue;
 
 		public PISyncer(in string MMF_FileName)
@@ -19,31 +19,31 @@ namespace PIAdapterCS
 			MMF_SoundD = MemoryMappedFile.CreateFromFile(MMF_FileName, FileMode.Open, ConstValues.PISyncer_Name_SoundD);
 			MMF_ArgData = MemoryMappedFile.CreateFromFile(MMF_FileName, FileMode.Open, ConstValues.PISyncer_Name_ArgData);
 			MMF_Handle = MemoryMappedFile.CreateFromFile(MMF_FileName, FileMode.Open, ConstValues.PISyncer_Name_Handle);
-
 		}
 
 		public void SetSyncerFlag(in int index, in uint value)
 		{
-			using (var va = MMF_Flags.CreateViewAccessor(index, sizeof(uint)))
-				va.Write(0, va.ReadUInt32(0) | value);
+			using var va = MMF_Flags.CreateViewAccessor(index, sizeof(uint));
+
+			va.Write(0, va.ReadUInt32(0) | value);
 		}
 
 		public bool IsSyncerFlagRaised(in int index, in uint value)
 		{
-			using (var va = MMF_Flags.CreateViewAccessor(index, sizeof(uint)))
-				return (va.ReadUInt32(0) & value) == value;//AND演算の結果がCheckFlagsと一致するなら, CheckFlagsはすべて立ってる.
+			using var va = MMF_Flags.CreateViewAccessor(index, sizeof(uint));
+
+			return (va.ReadUInt32(0) & value) == value;//AND演算の結果がCheckFlagsと一致するなら, CheckFlagsはすべて立ってる.
 		}
 
 
 		public void DoElapseFunc(Func<State,IntPtr,IntPtr,Hand> elapse, in int pnlarr_len, in int sndarr_len)
 		{
-			using (var va_pnl = MMF_PanelD.CreateViewAccessor(sizeof(int), sizeof(int) * pnlarr_len))
-			using (var va_snd = MMF_SoundD.CreateViewAccessor(sizeof(int), sizeof(int) * sndarr_len))
-			using (var va_hnd = MMF_Handle.CreateViewAccessor())
-			{
-				Hand h = elapse.Invoke(TouchArgData().state, va_pnl.SafeMemoryMappedViewHandle.DangerousGetHandle(), va_snd.SafeMemoryMappedViewHandle.DangerousGetHandle());
-				va_hnd.Write(0, ref h);
-			}
+			using var va_pnl = MMF_PanelD.CreateViewAccessor(sizeof(int), sizeof(int) * pnlarr_len);
+			using var va_snd = MMF_SoundD.CreateViewAccessor(sizeof(int), sizeof(int) * sndarr_len);
+			using var va_hnd = MMF_Handle.CreateViewAccessor();
+
+			Hand h = elapse.Invoke(TouchArgData().state, va_pnl.SafeMemoryMappedViewHandle.DangerousGetHandle(), va_snd.SafeMemoryMappedViewHandle.DangerousGetHandle());
+			va_hnd.Write(0, ref h);
 		}
 
 		/// <summary>MemoryMappedFileにあるPanelデータを取得します</summary>
@@ -51,8 +51,9 @@ namespace PIAdapterCS
 		/// <param name="length">読み込む要素数</param>
 		public void GetPanelFromMMF(int[] arr, in int length)
 		{
-			using (var va = MMF_PanelD.CreateViewAccessor())
-				va.ReadArray(sizeof(int), arr, 0, length);//オフセットは将来の「可変配列長」機能用
+			using var va = MMF_PanelD.CreateViewAccessor();
+
+			va.ReadArray(sizeof(int), arr, 0, length);//オフセットは将来の「可変配列長」機能用
 		}
 		
 		/// <summary>MemoryMappedFileのPanelデータを指定値で更新します</summary>
@@ -60,8 +61,9 @@ namespace PIAdapterCS
 		/// <param name="length">書き込む要素数</param>
 		public void SetPanelToMMF(in int[] arr, in int length)
 		{
-			using (var va = MMF_PanelD.CreateViewAccessor())
-				va.WriteArray(sizeof(int), arr, 0, length);//オフセットは将来の「可変配列長」機能用
+			using var va = MMF_PanelD.CreateViewAccessor();
+
+			va.WriteArray(sizeof(int), arr, 0, length);//オフセットは将来の「可変配列長」機能用
 		}
 		
 		/// <summary>MemoryMappedFileにあるSoundデータを取得します</summary>
@@ -69,8 +71,9 @@ namespace PIAdapterCS
 		/// <param name="length">読み込む要素数</param>
 		public void GetSoundFromMMF(int[] arr, in int length)
 		{
-			using (var va = MMF_SoundD.CreateViewAccessor())
-				va.ReadArray(sizeof(int), arr, 0, length);//オフセットは将来の「可変配列長」機能用
+			using var va = MMF_SoundD.CreateViewAccessor();
+
+			va.ReadArray(sizeof(int), arr, 0, length);//オフセットは将来の「可変配列長」機能用
 		}
 
 		/// <summary>MemoryMappedFileのSoundデータを指定値で更新します</summary>
@@ -78,30 +81,31 @@ namespace PIAdapterCS
 		/// <param name="length">書き込む要素数</param>
 		public void SetSoundToMMF(in int[] arr, in int length)
 		{
-			using (var va = MMF_SoundD.CreateViewAccessor())
-				va.WriteArray(sizeof(int), arr, 0, length);//オフセットは将来の「可変配列長」機能用
+			using var va = MMF_SoundD.CreateViewAccessor();
+
+			va.WriteArray(sizeof(int), arr, 0, length);//オフセットは将来の「可変配列長」機能用
 		}
 
-		public ArgData TouchArgData(Action<ArgData> act = null)
+		public ArgData TouchArgData(Action<ArgData>? act = null)
 		{
-			ArgData ad;
-			using (var va_stt = MMF_ArgData.CreateViewAccessor())
+			using var va_stt = MMF_ArgData.CreateViewAccessor();
+
+			va_stt.Read(0, out ArgData ad);
+
+			if (act != null)
 			{
-				va_stt.Read(0, out ad);
-				if (act != null)
-				{
-					act.Invoke(ad);//適当な操作
-					va_stt.Write(0, ref ad);//操作後の値を書き込み
-				}
+				act.Invoke(ad);//適当な操作
+				va_stt.Write(0, ref ad);//操作後の値を書き込み
 			}
+
 			return ad;
 		}
 
 		public Hand GetHandle()
 		{
-			Hand h;
-			using (var va = MMF_Handle.CreateViewAccessor())
-				va.Read(0, out h);
+			using var va = MMF_Handle.CreateViewAccessor();
+			
+			va.Read(0, out Hand h);
 
 			return h;
 		}
@@ -119,8 +123,6 @@ namespace PIAdapterCS
 					MMF_ArgData?.Dispose();
 					MMF_Handle?.Dispose();
 				}
-
-				MMF_Flags = MMF_PanelD = MMF_SoundD = MMF_ArgData = MMF_Handle = null;
 
 				disposedValue = true;
 			}
