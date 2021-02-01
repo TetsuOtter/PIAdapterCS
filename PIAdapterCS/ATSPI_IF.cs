@@ -1,25 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace PIAdapterCS
 {
 	public static class ATSPI_IF
 	{
-		static public readonly string SyncerSMemFileName = "SMem";
-		static public readonly int WaitCountMS = 1000;
-		static public readonly bool UseLastHandleOutput = true;
-
 		static readonly List<IAtsPI> STPI = new List<IAtsPI>();//IAtsPIの各関数は, 完了するまで返らないことを想定
-		static ATSPI_IF()
+		static PISyncer? syncer = null;
+		static ATSPI_IF()//TypeInitializationException
 		{
-			if (AtsPIClassSelector.GetAtsPluginInstance("path", STPI.Count) is IAtsPI pi)
-				STPI.Add(pi);
-
 #if DEBUG
 			if (!System.Diagnostics.Debugger.IsAttached)
-				System.Diagnostics.Debugger.Launch();
+				System.Diagnostics.Debugger.Launch();//Not Called
 #endif
 		}
 
@@ -27,12 +20,30 @@ namespace PIAdapterCS
 		{
 			var result = Parallel.For(0, STPI.Count, FuncToExec.Invoke);
 
-			for (int Count = 0; !result.IsCompleted && Count < WaitCountMS; Count++)
+			for (int Count = 0; !result.IsCompleted && Count < ConstValues.WaitCountMS; Count++)
 				Task.Delay(1);//タスクの終了待機
 		}
 
 		[DllExport]
-		static public void Dispose() => ExecFuncParallel((i) => STPI[i].Dispose());
+		static public void Load()
+		{
+			System.Diagnostics.Debug.WriteLine("PIAdapterCS ATSPI_IF Load");
+			
+			syncer = new PISyncer(ConstValues.SyncerSMemFileName);
+			if (AtsPIClassSelector.GetAtsPluginInstance("TR.BIDSSMemLib.bve5.x64.dll", STPI.Count, syncer) is IAtsPI pi)
+				STPI.Add(pi);
+
+			ExecFuncParallel((i) => STPI[i].Load());
+		}
+
+
+		[DllExport]
+		static public void Dispose()
+		{
+			ExecFuncParallel((i) => STPI[i].Dispose());
+			syncer?.Dispose();
+			STPI.Clear();
+		}
 
 		[DllExport]
 		static public void DoorClose() => ExecFuncParallel((i) => STPI[i].DoorClose());
@@ -50,7 +61,7 @@ namespace PIAdapterCS
 				retHandArr.Add(STPI[i].Elapse(s, Pa, So));
 
 
-			if (UseLastHandleOutput)
+			if (ConstValues.UseLastHandleOutput)
 				return retHandArr.FindLast((_) => true);
 
 			for(int i = 0; i < retHandArr.Count; i++)
@@ -85,14 +96,6 @@ namespace PIAdapterCS
 
 		[DllExport]
 		static public void KeyUp(int k) => ExecFuncParallel((i) => STPI[i].KeyUp(k));
-
-		[DllExport]
-		static public void Load()
-		{
-			System.Diagnostics.Debug.WriteLine("PIAdapterCS ATSPI_IF Load");
-
-			ExecFuncParallel((i) => STPI[i].Load());
-		}
 
 		[DllExport]
 		static public void SetBeaconData(Beacon b)
