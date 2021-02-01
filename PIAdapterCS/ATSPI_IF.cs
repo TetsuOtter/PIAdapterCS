@@ -1,123 +1,121 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace PIAdapterCS
 {
 	public static class ATSPI_IF
 	{
-		static SameTargetATSPI STPI;
+		static public readonly string SyncerSMemFileName = "SMem";
+		static public readonly int WaitCountMS = 1000;
+		static public readonly bool UseLastHandleOutput = true;
+
+		static readonly List<IAtsPI> STPI = new List<IAtsPI>();//IAtsPIの各関数は, 完了するまで返らないことを想定
 		static ATSPI_IF()
 		{
-			STPI = new SameTargetATSPI("TR.BIDSSMemLib.bve5.x64.dll");
+			if (AtsPIClassSelector.GetAtsPluginInstance("path", STPI.Count) is IAtsPI pi)
+				STPI.Add(pi);
+
+#if DEBUG
+			if (!System.Diagnostics.Debugger.IsAttached)
+				System.Diagnostics.Debugger.Launch();
+#endif
 		}
 
-		[DllImport("kernel32", CharSet = CharSet.Unicode)]
-		static extern void AllocConsole();
+		static private void ExecFuncParallel(Action<int> FuncToExec)
+		{
+			var result = Parallel.For(0, STPI.Count, FuncToExec.Invoke);
+
+			for (int Count = 0; !result.IsCompleted && Count < WaitCountMS; Count++)
+				Task.Delay(1);//タスクの終了待機
+		}
 
 		[DllExport]
-		static public void Dispose()
-		{
-			STPI.Dispose();
-		}
+		static public void Dispose() => ExecFuncParallel((i) => STPI[i].Dispose());
 
 		[DllExport]
-		static public void DoorClose()
-		{
-			STPI.DoorClose();
-		}
+		static public void DoorClose() => ExecFuncParallel((i) => STPI[i].DoorClose());
 
 		[DllExport]
-		static public void DoorOpen()
-		{
-			STPI.DoorOpen();
-		}
+		static public void DoorOpen() => ExecFuncParallel((i) => STPI[i].DoorOpen());
 
 		[DllExport]
 		static public Hand Elapse(State s, IntPtr Pa, IntPtr So)
 		{
-			return STPI.Elapse(s, Pa, So);
+			Hand retH = new Hand();
+			List<Hand> retHandArr = new List<Hand>();
+
+			for (int i = 0; i < STPI.Count; i++)
+				retHandArr.Add(STPI[i].Elapse(s, Pa, So));
+
+
+			if (UseLastHandleOutput)
+				return retHandArr.FindLast((_) => true);
+
+			for(int i = 0; i < retHandArr.Count; i++)
+			{
+				retH.B = Math.Max(retH.B, retHandArr[i].B); //ブレーキは最大出力を採用する
+				retH.P = Math.Max(retH.P, retHandArr[i].P); //力行は最大出力を採用する
+				retH.R = retHandArr.FindLast((_) => true).R; //レバーサーは最後の出力を採用する
+				retH.C = retHandArr.FindLast((_) => true).C; //定速制御は最後の出力を採用する
+			}
+			return retH;
 		}
 
 		[DllExport]
 		static public uint GetPluginVersion()
 		{
-			_ = STPI.GetPluginVersion();
+			ExecFuncParallel((i) => STPI[i].GetPluginVersion());
 			return ConstValues.ATSPI_IF_GetPIVersion;
 		}
 
 		[DllExport]
-		static public void HornBlow(int k)
-		{
-			STPI.HornBlow(k);
-		}
+		static public void HornBlow(int k) => ExecFuncParallel((i) => STPI[i].HornBlow(k));
 
 		[DllExport]
 		static public void Initialize(int s)
 		{
-			Console.WriteLine("ATSPI_IF Initialize");
-			STPI.Initialize(s);
+			System.Diagnostics.Debug.WriteLine("PIAdapterCS ATSPI_IF Initialize");
+			ExecFuncParallel((i) => STPI[i].Initialize(s));
 		}
 
 		[DllExport]
-		static public void KeyDown(int k)
-		{
-			STPI.KeyDown(k);
-		}
+		static public void KeyDown(int k) => ExecFuncParallel((i) => STPI[i].KeyDown(k));
 
 		[DllExport]
-		static public void KeyUp(int k)
-		{
-			STPI.KeyUp(k);
-		}
+		static public void KeyUp(int k) => ExecFuncParallel((i) => STPI[i].KeyUp(k));
 
 		[DllExport]
 		static public void Load()
 		{
-			AllocConsole();
-			Console.WriteLine("ATSPI_IF Load");
+			System.Diagnostics.Debug.WriteLine("PIAdapterCS ATSPI_IF Load");
 
-			STPI.Load();
+			ExecFuncParallel((i) => STPI[i].Load());
 		}
 
 		[DllExport]
 		static public void SetBeaconData(Beacon b)
 		{
-			Console.WriteLine("ATSPI_IF SetBeaconData (Z:{0}, Num:{1}, Sig:{2}, Data:{3})", b.Z, b.Num, b.Sig, b.Data);
-			STPI.SetBeaconData(b);
+			System.Diagnostics.Debug.WriteLine("PIAdapterCS ATSPI_IF SetBeaconData (Z:{0}, Num:{1}, Sig:{2}, Data:{3})", b.Z, b.Num, b.Sig, b.Data);
+			
+			ExecFuncParallel((i) => STPI[i].SetBeaconData(b));
 		}
 
 		[DllExport]
-		static public void SetBrake(int b)
-		{
-			Console.WriteLine("ATSPI_IF SetBrake ({0})", b);
-			STPI.SetBrake(b);
-		}
+		static public void SetBrake(int b) => ExecFuncParallel((i) => STPI[i].SetBrake(b));
+		
 
 		[DllExport]
-		static public void SetPower(int p)
-		{
-			Console.WriteLine("ATSPI_IF SetPower ({0})", p);
-			STPI.SetPower(p);
-		}
+		static public void SetPower(int p) => ExecFuncParallel((i) => STPI[i].SetPower(p));
 
 		[DllExport]
-		static public void SetReverser(int r)
-		{
-			Console.WriteLine("ATSPI_IF SetReverser ({0})", r);
-			STPI.SetReverser(r);
-		}
+		static public void SetReverser(int r) => ExecFuncParallel((i) => STPI[i].SetReverser(r));
 
 		[DllExport]
-		static public void SetSignal(int s)
-		{
-			Console.WriteLine("ATSPI_IF SetSignal ({0})", s);
-			STPI.SetSignal(s);
-		}
+		static public void SetSignal(int s) => ExecFuncParallel((i) => STPI[i].SetSignal(s));
 
 		[DllExport]
-		static public void SetVehicleSpec(Spec s)
-		{
-			STPI.SetVehicleSpec(s);
-		}
+		static public void SetVehicleSpec(Spec s) => ExecFuncParallel((i) => STPI[i].SetVehicleSpec(s));
 	}
 }
