@@ -7,7 +7,7 @@ namespace PIAdapterCS
 	/// <summary>TargetPlatformが同じATSプラグインを操作します.</summary>
 	public class SameTargetATSPI : IAtsPI
 	{
-		DllManager DM;
+		readonly DllManager DM;
 
 		delegate void d_Dispose();
 		delegate void d_DoorClose();
@@ -26,22 +26,22 @@ namespace PIAdapterCS
 		delegate void d_SetSignal(int s);
 		delegate void d_SetVehicleSpec(Spec s);
 
-		readonly d_Dispose PI_Dispose;
-		readonly d_DoorClose PI_DoorClose;
-		readonly d_DoorOpen PI_DoorOpen;
-		readonly d_Elapse PI_Elapse;
-		readonly d_GetPluginVersion PI_GetPluginVersion;
-		readonly d_HornBlow PI_HornBlow;
-		readonly d_Initialize PI_Initialize;
-		readonly d_KeyDown PI_KeyDown;
-		readonly d_KeyUp PI_KeyUp;
-		readonly d_Load PI_Load;
-		readonly d_SetBeaconData PI_SetBeaconData;
-		readonly d_SetBrake PI_SetBrake;
-		readonly d_SetPower PI_SetPower;
-		readonly d_SetReverser PI_SetReverser;
-		readonly d_SetSignal PI_SetSignal;
-		readonly d_SetVehicleSpec PI_SetVehicleSpec;
+		readonly d_Dispose? PI_Dispose;
+		readonly d_DoorClose? PI_DoorClose;
+		readonly d_DoorOpen? PI_DoorOpen;
+		readonly d_Elapse? PI_Elapse;
+		readonly d_GetPluginVersion? PI_GetPluginVersion;
+		readonly d_HornBlow? PI_HornBlow;
+		readonly d_Initialize? PI_Initialize;
+		readonly d_KeyDown? PI_KeyDown;
+		readonly d_KeyUp? PI_KeyUp;
+		readonly d_Load? PI_Load;
+		readonly d_SetBeaconData? PI_SetBeaconData;
+		readonly d_SetBrake? PI_SetBrake;
+		readonly d_SetPower? PI_SetPower;
+		readonly d_SetReverser? PI_SetReverser;
+		readonly d_SetSignal? PI_SetSignal;
+		readonly d_SetVehicleSpec? PI_SetVehicleSpec;
 
 		/// <summary>SameTargetATSPIインスタンスを初期化する</summary>
 		/// <param name="PIPath">PIへのパス(絶対 or 相対)</param>
@@ -82,25 +82,25 @@ namespace PIAdapterCS
 
 		public void Dispose()
 		{
-			PI_Dispose();
+			PI_Dispose?.Invoke();
 
 			DM.Dispose();
 		}
 
-		public void DoorClose() => PI_DoorClose();
-		public void DoorOpen() => PI_DoorOpen();
-		public Hand Elapse(State s, IntPtr Pa, IntPtr So) => PI_Elapse(s, Pa, So);
-		public uint GetPluginVersion() => PI_GetPluginVersion();
-		public void HornBlow(int k) => PI_HornBlow(k);
-		public void Initialize(int s) => PI_Initialize(s);
-		public void KeyDown(int k) => PI_KeyDown(k);
-		public void KeyUp(int k) => PI_KeyUp(k);
-		public void Load() => PI_Load();
-		public void SetBeaconData(Beacon b) => PI_SetBeaconData(b);
-		public void SetBrake(int b) => PI_SetBrake(b);
-		public void SetPower(int p) => PI_SetPower(p);
-		public void SetReverser(int r) => PI_SetReverser(r);
-		public void SetSignal(int s) => PI_SetSignal(s);
-		public void SetVehicleSpec(Spec s) => PI_SetVehicleSpec(s);
+		public void DoorClose() => PI_DoorClose?.Invoke();
+		public void DoorOpen() => PI_DoorOpen?.Invoke();
+		public Hand Elapse(State s, IntPtr Pa, IntPtr So) => PI_Elapse?.Invoke(s, Pa, So) ?? default;
+		public uint GetPluginVersion() => PI_GetPluginVersion?.Invoke() ?? ConstValues.ATSPI_IF_GetPIVersion;
+		public void HornBlow(int k) => PI_HornBlow?.Invoke(k);
+		public void Initialize(int s) => PI_Initialize?.Invoke(s);
+		public void KeyDown(int k) => PI_KeyDown?.Invoke(k);
+		public void KeyUp(int k) => PI_KeyUp?.Invoke(k);
+		public void Load() => PI_Load?.Invoke();
+		public void SetBeaconData(Beacon b) => PI_SetBeaconData?.Invoke(b);
+		public void SetBrake(int b) => PI_SetBrake?.Invoke(b);
+		public void SetPower(int p) => PI_SetPower?.Invoke(p);
+		public void SetReverser(int r) => PI_SetReverser?.Invoke(r);
+		public void SetSignal(int s) => PI_SetSignal?.Invoke(s);
+		public void SetVehicleSpec(Spec s) => PI_SetVehicleSpec?.Invoke(s);
 	}
 }
