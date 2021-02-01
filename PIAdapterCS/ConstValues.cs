@@ -2,6 +2,10 @@
 {
 	static public class ConstValues
 	{
+		static public string SyncerSMemFileName { get; } = System.Reflection.Assembly.GetExecutingAssembly().Location + "SMem.bin";
+		static public int WaitCountMS { get; } = 1000;
+		static public bool UseLastHandleOutput { get; } = true;
+		static public int AdapterVersion { get; } = 100;
 		static public uint ATSPI_IF_GetPIVersion { get; } = 0x00020000;
 
 		static public int PanelArrSize { get; } = 256;
