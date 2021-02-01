@@ -26,22 +26,22 @@ namespace PIAdapterCS
 		delegate void d_SetSignal(int s);
 		delegate void d_SetVehicleSpec(Spec s);
 
-		d_Dispose PI_Dispose;
-		d_DoorClose PI_DoorClose;
-		d_DoorOpen PI_DoorOpen;
-		d_Elapse PI_Elapse;
-		d_GetPluginVersion PI_GetPluginVersion;
-		d_HornBlow PI_HornBlow;
-		d_Initialize PI_Initialize;
-		d_KeyDown PI_KeyDown;
-		d_KeyUp PI_KeyUp;
-		d_Load PI_Load;
-		d_SetBeaconData PI_SetBeaconData;
-		d_SetBrake PI_SetBrake;
-		d_SetPower PI_SetPower;
-		d_SetReverser PI_SetReverser;
-		d_SetSignal PI_SetSignal;
-		d_SetVehicleSpec PI_SetVehicleSpec;
+		readonly d_Dispose PI_Dispose;
+		readonly d_DoorClose PI_DoorClose;
+		readonly d_DoorOpen PI_DoorOpen;
+		readonly d_Elapse PI_Elapse;
+		readonly d_GetPluginVersion PI_GetPluginVersion;
+		readonly d_HornBlow PI_HornBlow;
+		readonly d_Initialize PI_Initialize;
+		readonly d_KeyDown PI_KeyDown;
+		readonly d_KeyUp PI_KeyUp;
+		readonly d_Load PI_Load;
+		readonly d_SetBeaconData PI_SetBeaconData;
+		readonly d_SetBrake PI_SetBrake;
+		readonly d_SetPower PI_SetPower;
+		readonly d_SetReverser PI_SetReverser;
+		readonly d_SetSignal PI_SetSignal;
+		readonly d_SetVehicleSpec PI_SetVehicleSpec;
 
 		/// <summary>SameTargetATSPIインスタンスを初期化する</summary>
 		/// <param name="PIPath">PIへのパス(絶対 or 相対)</param>
@@ -53,7 +53,7 @@ namespace PIAdapterCS
 			DM = new DllManager(
 				Path.IsPathRooted(PIPath) ?//絶対パスかどうか
 					PIPath ://絶対パスならそのまま使用
-					Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), PIPath)//相対パスなら, 絶対パスに変換して使用
+					Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, PIPath)//相対パスなら, 絶対パスに変換して使用
 				);
 
 
@@ -77,11 +77,7 @@ namespace PIAdapterCS
 
 		~SameTargetATSPI()//DllManagerは確実に解放する
 		{
-			if (DM != null)
-			{
-				DM.Dispose();
-				DM = null;
-			}
+			DM.Dispose();
 		}
 
 		public void Dispose()
@@ -89,7 +85,6 @@ namespace PIAdapterCS
 			PI_Dispose();
 
 			DM.Dispose();
-			DM = null;
 		}
 
 		public void DoorClose() => PI_DoorClose();
