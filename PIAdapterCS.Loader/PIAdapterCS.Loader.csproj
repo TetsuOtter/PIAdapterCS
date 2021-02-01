@@ -2,7 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
+		<LangVersion>9.0</LangVersion>
+		<Nullable>enable</Nullable>
+		<Platforms>x64;x86</Platforms>
+		<AssemblyName Condition="'$(Platform)' == 'x86'">PIAdapter.Loader.x86</AssemblyName>
+		<AssemblyName Condition="'$(Platform)' == 'x64'">PIAdapter.Loader.x64</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
