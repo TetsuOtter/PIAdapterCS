@@ -21,6 +21,7 @@ namespace PIAdapterCS
 			MMF_Handle = MemoryMappedFile.CreateFromFile(MMF_FileName, FileMode.Open, ConstValues.PISyncer_Name_Handle);
 		}
 
+		public void SetSyncerFlag(in int index, in SyncerFlags value) => SetSyncerFlag(index, (uint)value);
 		public void SetSyncerFlag(in int index, in uint value)
 		{
 			using var va = MMF_Flags.CreateViewAccessor(index, sizeof(uint));
@@ -28,6 +29,15 @@ namespace PIAdapterCS
 			va.Write(0, va.ReadUInt32(0) | value);
 		}
 
+		public void SetSyncerFlagToLower(in int index, in SyncerFlags value) => SetSyncerFlagToLower(index, (uint)value);
+		public void SetSyncerFlagToLower(in int index, in uint value)
+		{
+			using var va = MMF_Flags.CreateViewAccessor(index, sizeof(uint));
+
+			va.Write(0, va.ReadUInt32(0) & ~value);//ビットごとの補数をAND
+		}
+
+		public bool IsSyncerFlagRaised(in int index, in SyncerFlags value) => IsSyncerFlagRaised(index, (uint)value);
 		public bool IsSyncerFlagRaised(in int index, in uint value)
 		{
 			using var va = MMF_Flags.CreateViewAccessor(index, sizeof(uint));
@@ -153,7 +163,7 @@ namespace PIAdapterCS
 	}
 
 	[Flags]
-	public enum SyncerFlags
+	public enum SyncerFlags : uint
 	{
 		Load = 1 << 0,
 		Dispose = 1 << 1,
