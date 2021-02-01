@@ -9,6 +9,7 @@ namespace PIAdapterCS
 	{
 		//ref : https://anis774.net/codevault/loadlibrary.html
 
+		#region DllImport
 		/// <summary>モジュールを読み込む</summary>
 		/// <param name="lpLibFileName">モジュールへのパス</param>
 		/// <returns>モジュールハンドル</returns>
@@ -27,6 +28,7 @@ namespace PIAdapterCS
 		/// <returns>解放に成功したかどうか</returns>
 		[DllImport("kernel32")]
 		static extern bool FreeLibrary(IntPtr hLibModule);
+		#endregion
 
 		/// <summary>読み込んだモジュールに割り当てられたハンドル</summary>
 		public IntPtr ModuleHandle{ get; }
@@ -35,7 +37,7 @@ namespace PIAdapterCS
 		/// <typeparam name="T">delegate</typeparam>
 		/// <param name="method">関数の表記名</param>
 		/// <returns>取得したdelegate</returns>
-		public T GetProcDelegate<T>(string method) where T : class
+		public T? GetProcDelegate<T>(in string method) where T : class
 			=> Marshal.GetDelegateForFunctionPointer(GetProcAddress(ModuleHandle, method), typeof(T)) as T;
 		
 		/// <summary>確保しているリソースを解放する</summary>
