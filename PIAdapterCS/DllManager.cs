@@ -7,6 +7,8 @@ namespace PIAdapterCS
 	/// <summary>指定のdllを読み込み, 扱えるようにする.</summary>
 	public class DllManager : IDisposable
 	{
+		private bool disposedValue;
+
 		//ref : https://anis774.net/codevault/loadlibrary.html
 
 		#region DllImport
@@ -32,6 +34,8 @@ namespace PIAdapterCS
 
 		/// <summary>読み込んだモジュールに割り当てられたハンドル</summary>
 		public IntPtr ModuleHandle{ get; }
+		/// <summary>リソースが解放済みかどうか</summary>
+		public bool IsDisposed { get => disposedValue; }
 
 		/// <summary>delegateを, 初期化時に指定したdllから設定する</summary>
 		/// <typeparam name="T">delegate</typeparam>
@@ -39,9 +43,7 @@ namespace PIAdapterCS
 		/// <returns>取得したdelegate</returns>
 		public T? GetProcDelegate<T>(in string method) where T : class
 			=> Marshal.GetDelegateForFunctionPointer(GetProcAddress(ModuleHandle, method), typeof(T)) as T;
-		
-		/// <summary>確保しているリソースを解放する</summary>
-		public void Dispose() => FreeLibrary(ModuleHandle);
+
 
 		/// <summary>指定のモジュールを読み込むことで, インスタンスを初期化する.</summary>
 		/// <param name="path">モジュールへのパス</param>
@@ -52,6 +54,36 @@ namespace PIAdapterCS
 
 			ModuleHandle = LoadLibrary(path);
 		}
-		
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposedValue)
+			{
+				if (disposing)
+				{
+					// TODO: dispose managed state (managed objects)
+				}
+
+				// TODO: free unmanaged resources (unmanaged objects) and override finalizer
+				// TODO: set large fields to null
+				FreeLibrary(ModuleHandle);
+
+				disposedValue = true;
+			}
+		}
+
+		// TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+		~DllManager()
+		{
+			// Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+			Dispose(disposing: false);
+		}
+
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+			Dispose(disposing: true);
+			GC.SuppressFinalize(this);
+		}
 	}
 }
