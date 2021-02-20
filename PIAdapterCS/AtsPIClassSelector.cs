@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Reflection.PortableExecutable;
-using System.Reflection;
 
 namespace PIAdapterCS
 {
@@ -24,64 +22,28 @@ namespace PIAdapterCS
 
 		private static IAtsPI? CreateInstanceFromDll(in string path,in int index,in PISyncer syncer)
 		{
-			Machine machine = Machine.Unknown;
-			bool IsIL = false;
+			ExecutableFileTargetChecker target = ExecutableFileTargetChecker.Check(path);
+			if (!target.LoadSuccessed)
+				return null;//読み込みに失敗した
 
-			using (var reader = new StreamReader(path))
+			return target.TargetPlatform switch
 			{
-				if (new PEHeaders(reader.BaseStream) is PEHeaders h)//ここの処理は直ぐだろうからこのまま
-				{
-					machine = h.CoffHeader.Machine;
-
-					if (h.CorHeader?.Flags is CorFlags f)
-						IsIL = (f & CorFlags.ILOnly) == CorFlags.ILOnly; //Corヘッダが存在し, かつILOnlyの場合のみILである.
-				}
-			}//ファイルは早めに閉じておく
-
-			if (IsIL)
-				return CreateInstanceFromILDll(path);
-			else
-				return machine switch
-				{
-					Machine.Amd64 => CreateInstanceForX64Dll(path, index, syncer),//x64のDLLであった場合
-					Machine.I386 => CreateInstanceForX86Dll(path, index, syncer),//x86のDLLであった場合
-					_ => null//上記以外は未対応
-				};
+				ExecutableFileTargetChecker.TargetPlatformTypes.AnyCPU => TR.SameTargetATSPILoader.CreateInstanceFromILDll(path),//AnyCPUなら, 直で読み込む(CLRでないはずがないため)
+				ExecutableFileTargetChecker.TargetPlatformTypes.X86 => CreateInstanceForX86Dll(path, index, syncer),//X86なら, それ用の判定を挟んで読み込む
+				ExecutableFileTargetChecker.TargetPlatformTypes.X64 => CreateInstanceForX64Dll(path, index, syncer),//X64なら, それ用の判定を挟んで読み込む
+				_ => null
+			};
 		}
 
-		private static IAtsPI? CreateInstanceFromILDll(in string path)
-		{
-			try
-			{
-				Assembly asm = Assembly.LoadFrom(path);
-				foreach(var m in asm.GetModules())
-				{
-					try
-					{
-						foreach (var t in m.GetTypes())
-							if (typeof(IAtsPI).IsAssignableFrom(t)) //IsAssignableFrom ref : https://smdn.jp/programming/netfx/tips/check_type_isassignablefrom_issubclassof/#section.2.1
-								return asm.CreateInstance(t.Name) as IAtsPI;
-					}catch(Exception ex)
-					{
-						System.Diagnostics.Debug.WriteLine(ex);
-					}
-				}	
-			}catch(Exception ex)
-			{
-				System.Diagnostics.Debug.WriteLine(ex);
-			}
-
-			return null;
-		}
 
 		private static IAtsPI? CreateInstanceForX86Dll(in string path, in int index, in PISyncer syncer)
 			=> Environment.Is64BitProcess ? //X86 dllは, 
 			new DifferentTargetATSPI(PIAdapter_Loader_X64_FName, GetDifferentT_ArgString(path, index), syncer, index) //x64プロセスではDifferentTarget
-			: new SameTargetATSPI(path); //x86プロセスではSameTarget
+			: TR.SameTargetATSPILoader.LoadNativeOrClrPI(path); //x86プロセスではSameTarget
 
 		private static IAtsPI? CreateInstanceForX64Dll(in string path, in int index, in PISyncer syncer)
 			=> Environment.Is64BitProcess
-			? new SameTargetATSPI(path) //x64 dllは, x64プロセスではSameTarget
+			? TR.SameTargetATSPILoader.LoadNativeOrClrPI(path) //x64 dllは, x64プロセスではSameTarget
 			: new DifferentTargetATSPI(PIAdapter_Loader_X64_FName, GetDifferentT_ArgString(path, index), syncer, index);//x86プロセスではDifferentTarget
 
 		private static string GetDifferentT_ArgString(in string path, in int index)

@@ -39,6 +39,9 @@
     <PackageReference Include="ILMerge" Version="3.0.41" />
     <PackageReference Include="System.Reflection.Metadata" Version="5.0.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SameTargetAtsPILoader\SameTargetAtsPILoader.csproj" />
+  </ItemGroup>
 	<!--<Target Condition="'$(Platform)' == 'x86' Or '$(Platform)' == 'x64'" Name="DllExportPreProc" BeforeTargets="DllExportMod" Label="8337224c9ad9e356:PreProc">
 		<Copy SourceFiles="$(DllExportMetaLibFullPath)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
 		<Exec Command="$(ILMergeConsolePath) /target:dll /lib:$(TargetDir) $(TargetFileName) IAtsPI.dll /out:$(AssemblyName).$(Platform).dll" WorkingDirectory="$(TargetDir)" ContinueOnError="false" />
