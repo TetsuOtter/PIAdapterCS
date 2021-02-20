@@ -2,7 +2,7 @@
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace PIAdapterCS
+namespace TR
 {
 	/// <summary>指定のdllを読み込み, 扱えるようにする.</summary>
 	public class DllManager : IDisposable
@@ -33,7 +33,7 @@ namespace PIAdapterCS
 		#endregion
 
 		/// <summary>読み込んだモジュールに割り当てられたハンドル</summary>
-		public IntPtr ModuleHandle{ get; }
+		public IntPtr ModuleHandle { get; }
 		/// <summary>リソースが解放済みかどうか</summary>
 		public bool IsDisposed { get => disposedValue; }
 

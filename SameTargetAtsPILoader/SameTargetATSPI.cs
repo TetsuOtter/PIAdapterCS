@@ -2,11 +2,12 @@
 using System.IO;
 using System.Reflection;
 
-namespace PIAdapterCS
+namespace TR
 {
 	/// <summary>TargetPlatformが同じATSプラグインを操作します.</summary>
 	public class SameTargetATSPI : IAtsPI
 	{
+		static private readonly uint ATSPluginInterfaceVersion = 0x00020000;
 		readonly DllManager DM;
 
 		delegate void d_Dispose();
@@ -75,10 +76,8 @@ namespace PIAdapterCS
 			PI_SetVehicleSpec = DM.GetProcDelegate<d_SetVehicleSpec>(nameof(SetVehicleSpec));
 		}
 
-		~SameTargetATSPI()//DllManagerは確実に解放する
-		{
-			DM.Dispose();
-		}
+		~SameTargetATSPI() => DM.Dispose();//DllManagerは確実に解放する
+		
 
 		public void Dispose()
 		{
@@ -90,7 +89,7 @@ namespace PIAdapterCS
 		public void DoorClose() => PI_DoorClose?.Invoke();
 		public void DoorOpen() => PI_DoorOpen?.Invoke();
 		public Hand Elapse(State s, IntPtr Pa, IntPtr So) => PI_Elapse?.Invoke(s, Pa, So) ?? default;
-		public uint GetPluginVersion() => PI_GetPluginVersion?.Invoke() ?? ConstValues.ATSPI_IF_GetPIVersion;
+		public uint GetPluginVersion() => PI_GetPluginVersion?.Invoke() ?? ATSPluginInterfaceVersion;
 		public void HornBlow(int k) => PI_HornBlow?.Invoke(k);
 		public void Initialize(int s) => PI_Initialize?.Invoke(s);
 		public void KeyDown(int k) => PI_KeyDown?.Invoke(k);
