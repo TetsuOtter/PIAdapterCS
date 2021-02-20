@@ -37,7 +37,6 @@
     </PackageReference>
 		<PackageReference Include="IAtsPI" Version="1.0.0.2" />
     <PackageReference Include="ILMerge" Version="3.0.41" />
-    <PackageReference Include="System.Reflection.Metadata" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SameTargetAtsPILoader\SameTargetAtsPILoader.csproj" />
