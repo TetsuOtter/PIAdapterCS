@@ -5,7 +5,7 @@ using System.Reflection;
 namespace TR
 {
 	/// <summary>TargetPlatformが同じATSプラグインを操作します.</summary>
-	public class SameTargetATSPI : IAtsPI
+	public class SameTargetNativeATSPI : IAtsPI
 	{
 		static private readonly uint ATSPluginInterfaceVersion = 0x00020000;
 		readonly DllManager DM;
@@ -46,7 +46,7 @@ namespace TR
 
 		/// <summary>SameTargetATSPIインスタンスを初期化する</summary>
 		/// <param name="PIPath">PIへのパス(絶対 or 相対)</param>
-		public SameTargetATSPI(string PIPath)
+		public SameTargetNativeATSPI(in string PIPath)
 		{
 			//Ref : https://dobon.net/vb/dotnet/file/pathclass.html
 			//ref : https://dobon.net/vb/dotnet/file/isabsolutepath.html
@@ -76,8 +76,8 @@ namespace TR
 			PI_SetVehicleSpec = DM.GetProcDelegate<d_SetVehicleSpec>(nameof(SetVehicleSpec));
 		}
 
-		~SameTargetATSPI() => DM.Dispose();//DllManagerは確実に解放する
-		
+		~SameTargetNativeATSPI() => DM.Dispose();//DllManagerは確実に解放する
+
 
 		public void Dispose()
 		{
