@@ -2,7 +2,7 @@
 using System.IO;
 using System.IO.MemoryMappedFiles;
 
-namespace PIAdapterCS
+namespace TR.ATSPISyncer
 {
 	public class PISyncer : IDisposable
 	{
