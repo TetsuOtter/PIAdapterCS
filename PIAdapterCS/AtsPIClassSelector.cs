@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 
+using TR.ATSPISyncer;
+
 namespace PIAdapterCS
 {
 	static public class AtsPIClassSelector

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net45</TargetFramework>
 		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
 		<Platforms>x64;x86</Platforms>
@@ -11,7 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PIAdapterCS\PIAdapterCS.csproj" />
+    <ProjectReference Include="..\ATSPISyncer\ATSPISyncer.csproj" />
+    <ProjectReference Include="..\SameTargetAtsPILoader\SameTargetAtsPILoader.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 
+using TR.ATSPISyncer;
+
 namespace PIAdapterCS
 {
 	public class DifferentTargetATSPI : IAtsPI
