@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 
@@ -12,11 +11,11 @@ namespace TR.ATSPISyncer
 		readonly MemoryMappedFile MMF_Flags, MMF_PanelD, MMF_SoundD, MMF_ArgData, MMF_Handle;
 		private bool disposedValue;
 
-		public PISyncer(in string a_MMF_NameSuffix, in int SyncDllMaxCount = 1)
+		public PISyncer(in string a_MMF_NameSuffix, in int SyncDllMaxIndex = 0)
 		{
 			MMF_NameSuffix = a_MMF_NameSuffix;
 
-			MMF_Flags = MemoryMappedFile.CreateOrOpen(ConstValues.PISyncer_Name_Flags + MMF_NameSuffix, sizeof(int) * SyncDllMaxCount);
+			MMF_Flags = MemoryMappedFile.CreateOrOpen(ConstValues.PISyncer_Name_Flags + MMF_NameSuffix, sizeof(int) * (SyncDllMaxIndex + 1));
 			MMF_PanelD = MemoryMappedFile.CreateOrOpen(ConstValues.PISyncer_Name_PanelD + MMF_NameSuffix, sizeof(int) * ConstValues.PanelArrSize);
 			MMF_SoundD = MemoryMappedFile.CreateOrOpen(ConstValues.PISyncer_Name_SoundD + MMF_NameSuffix, sizeof(int) * ConstValues.SoundArrSize);
 			MMF_ArgData = MemoryMappedFile.CreateOrOpen(ConstValues.PISyncer_Name_SoundD + MMF_NameSuffix, Marshal.SizeOf(typeof(ArgData)));
