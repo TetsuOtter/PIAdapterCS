@@ -20,15 +20,19 @@ namespace PIAdapterCS
 #endif
 			try
 			{
-				syncer = new PISyncer(ConstValues.SyncerSMemFileName);
+				syncer = new PISyncer(new Random().Next().ToString());
 			}catch(Exception ex)
 			{
 				System.Diagnostics.Debug.WriteLine(ex);
+				throw;
 			}
 		}
 
 		static private void ExecFuncParallel(Action<int> FuncToExec)
 		{
+			if (STPI.Count <= 0)
+				return;
+
 			var result = Parallel.For(0, STPI.Count, FuncToExec.Invoke);
 
 			for (int Count = 0; !result.IsCompleted && Count < ConstValues.WaitCountMS; Count++)
@@ -41,7 +45,7 @@ namespace PIAdapterCS
 			System.Diagnostics.Debug.WriteLine("PIAdapterCS ATSPI_IF Load");
 			try
 			{
-				if (AtsPIClassSelector.GetAtsPluginInstance("TR.BIDSSMemLib.bve5.x64.dll", STPI.Count, syncer) is IAtsPI pi)//////////TO DEBUG
+				if (AtsPIClassSelector.GetAtsPluginInstance(System.IO.Path.Combine(ConstValues.DllDirectory, "TR.BIDSSMemLib.bve5.x86.dll"), STPI.Count, syncer) is IAtsPI pi)//////////TO DEBUG
 					STPI.Add(pi);
 			}catch(Exception ex)
 			{
@@ -65,11 +69,15 @@ namespace PIAdapterCS
 		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void DoorOpen() => ExecFuncParallel((i) => STPI[i].DoorOpen());
 
+		static Hand myHand = new Hand();
 		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public Hand Elapse(State s, IntPtr Pa, IntPtr So)
 		{
 			Hand retH = new Hand();
 			List<Hand> retHandArr = new List<Hand>();
+
+			if (STPI.Count <= 0)
+				return myHand;
 
 			for (int i = 0; i < STPI.Count; i++)
 				retHandArr.Add(STPI[i].Elapse(s, Pa, So));
@@ -119,15 +127,27 @@ namespace PIAdapterCS
 			ExecFuncParallel((i) => STPI[i].SetBeaconData(b));
 		}
 
-		[DllExport(CallingConvention= CallingConvention.StdCall)]
-		static public void SetBrake(int b) => ExecFuncParallel((i) => STPI[i].SetBrake(b));
-		
+		[DllExport(CallingConvention = CallingConvention.StdCall)]
+		static public void SetBrake(int b)
+		{
+			myHand.B = b;
+			ExecFuncParallel((i) => STPI[i].SetBrake(b));
+		}
 
-		[DllExport(CallingConvention= CallingConvention.StdCall)]
-		static public void SetPower(int p) => ExecFuncParallel((i) => STPI[i].SetPower(p));
 
-		[DllExport(CallingConvention= CallingConvention.StdCall)]
-		static public void SetReverser(int r) => ExecFuncParallel((i) => STPI[i].SetReverser(r));
+		[DllExport(CallingConvention = CallingConvention.StdCall)]
+		static public void SetPower(int p)
+		{
+			myHand.P = p;
+			ExecFuncParallel((i) => STPI[i].SetPower(p));
+		}
+
+		[DllExport(CallingConvention = CallingConvention.StdCall)]
+		static public void SetReverser(int r)
+		{
+			myHand.R = r;
+			ExecFuncParallel((i) => STPI[i].SetReverser(r));
+		}
 
 		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void SetSignal(int s) => ExecFuncParallel((i) => STPI[i].SetSignal(s));
