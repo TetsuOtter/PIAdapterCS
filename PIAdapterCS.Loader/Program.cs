@@ -7,18 +7,23 @@ namespace PIAdapterCS.Loader
 	{
 		static void Main(string[] args)
 		{
+#if DEBUG
+			if (!System.Diagnostics.Debugger.IsAttached)
+				System.Diagnostics.Debugger.Launch();
+#endif
+
 			Console.WriteLine("Hello World!");
 
 			if (!(args?.Length > 0))
 				throw new ArgumentException("実行時引数は必ずセットする必要があります.");
 
 			bool IsModPathSet = false;
-			bool IsMMFPathSet = false;
+			bool IsMMFSuffixSet = false;
 			bool IsAdapterVersionSet = false;
 			bool IsIndexSet = false;
 
 			string ModPath = string.Empty;
-			string MMFPath = string.Empty;
+			string MMFSuffix = string.Empty;
 			int PIAdapterVersion = 0;
 			int SyncerIndex = -1;
 
@@ -47,8 +52,8 @@ namespace PIAdapterCS.Loader
 					case "-memorymappedfile":
 						if ((i + 1) < args.Length)
 						{
-							MMFPath = args[++i];
-							IsMMFPathSet = true;
+							MMFSuffix = args[++i];
+							IsMMFSuffixSet = true;
 						}
 						break;
 
@@ -82,7 +87,7 @@ namespace PIAdapterCS.Loader
 
 			if (!IsModPathSet)
 				err += "DLLファイルへのパスが指定されていません.  \"-module\"オプション識別子で指定してください.\n";
-			if (!IsMMFPathSet)
+			if (!IsMMFSuffixSet)
 				err += "MemoryMappedPathへのパスが指定されていません.  \"-memorymappedfile\"オプション識別子で指定してください.\n";
 			if (!IsAdapterVersionSet)
 				err += "AdapterVersionが指定されていません.  \"-adapterversion\"オプション識別子で指定してください.\n";
@@ -91,8 +96,6 @@ namespace PIAdapterCS.Loader
 
 			if (!string.IsNullOrWhiteSpace(ModPath) && !File.Exists(ModPath))
 				err += ("指定されたDLLファイルが見つかりません.  指定されたファイルへのパス : " + ModPath + "\n");
-			if (!string.IsNullOrWhiteSpace(MMFPath) && !File.Exists(MMFPath))
-				err += ("指定されたMemoryMappedFileが見つかりません.  指定されたファイルへのパス : " + MMFPath + "\n");
 			#endregion //入力の正当性検証
 
 			if (err!=string.Empty)
@@ -102,7 +105,7 @@ namespace PIAdapterCS.Loader
 				return;//エラー発生時は終了させる.
 			}
 
-			var Worker = new CallPIFuncs(MMFPath, ModPath, SyncerIndex);
+			var Worker = new CallPIFuncs(MMFSuffix, ModPath, SyncerIndex);
 
 
 			while (!Worker.IsDisposed)

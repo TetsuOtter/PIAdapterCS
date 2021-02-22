@@ -9,6 +9,8 @@ namespace PIAdapterCS
 	{
 		static public readonly string PIAdapter_Loader_X86_FName = "PIAdapterCS.Loader.x86.exe";
 		static public readonly string PIAdapter_Loader_X64_FName = "PIAdapterCS.Loader.x64.exe";
+		static public string PIAdapter_Loader_X86_Path = Path.Combine(ConstValues.DllDirectory, PIAdapter_Loader_X86_FName);
+		static public string PIAdapter_Loader_X64_Path = Path.Combine(ConstValues.DllDirectory, PIAdapter_Loader_X64_FName);
 		static public IAtsPI? GetAtsPluginInstance(in string path, in int index, in PISyncer syncer)
 		{
 			if (!File.Exists(path))//ファイルが存在しないなら
@@ -40,15 +42,15 @@ namespace PIAdapterCS
 
 		private static IAtsPI? CreateInstanceForX86Dll(in string path, in int index, in PISyncer syncer)
 			=> Environment.Is64BitProcess ? //X86 dllは, 
-			new DifferentTargetATSPI(PIAdapter_Loader_X64_FName, GetDifferentT_ArgString(path, index), syncer, index) //x64プロセスではDifferentTarget
+			new DifferentTargetATSPI(PIAdapter_Loader_X86_Path, GetDifferentT_ArgString(path, index, syncer), syncer, index) //x64プロセスではDifferentTarget
 			: TR.SameTargetATSPILoader.LoadNativeOrClrPI(path); //x86プロセスではSameTarget
 
 		private static IAtsPI? CreateInstanceForX64Dll(in string path, in int index, in PISyncer syncer)
 			=> Environment.Is64BitProcess
 			? TR.SameTargetATSPILoader.LoadNativeOrClrPI(path) //x64 dllは, x64プロセスではSameTarget
-			: new DifferentTargetATSPI(PIAdapter_Loader_X64_FName, GetDifferentT_ArgString(path, index), syncer, index);//x86プロセスではDifferentTarget
+			: new DifferentTargetATSPI(PIAdapter_Loader_X64_Path, GetDifferentT_ArgString(path, index, syncer), syncer, index);//x86プロセスではDifferentTarget
 
-		private static string GetDifferentT_ArgString(in string path, in int index)
-			=> $"-module \"{path}\" -mmf \"{ConstValues.SyncerSMemFileName}\" -adpv {ConstValues.AdapterVersion} -index {index}";
+		private static string GetDifferentT_ArgString(in string path, in int index, in PISyncer syncer)
+			=> $"-module \"{path}\" -mmf \"{syncer.MMF_NameSuffix}\" -adpv {ConstValues.AdapterVersion} -index {index}";
 	}
 }

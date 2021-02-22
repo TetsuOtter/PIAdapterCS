@@ -13,10 +13,10 @@ namespace PIAdapterCS.Loader
 		readonly IAtsPI pi;
 		readonly int SyncerIndex = -1;
 
-		public CallPIFuncs(in string a_MMFPath, in string a_ModPath, in int a_SyncerIndex)
+		public CallPIFuncs(in string a_MMFSuffix, in string a_ModPath, in int a_SyncerIndex)
 		{
 			SyncerIndex = a_SyncerIndex;
-			pis = new PISyncer(a_MMFPath);
+			pis = new PISyncer(a_MMFSuffix, a_SyncerIndex);
 			pi = SameTargetATSPILoader.LoadNativeOrClrPI(a_ModPath);
 		}
 
