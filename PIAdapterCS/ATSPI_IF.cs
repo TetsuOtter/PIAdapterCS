@@ -1,19 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+
+using TR.ATSPISyncer;
 
 namespace PIAdapterCS
 {
 	public static class ATSPI_IF
 	{
 		static readonly List<IAtsPI> STPI = new List<IAtsPI>();//IAtsPIの各関数は, 完了するまで返らないことを想定
-		static PISyncer? syncer = null;
+		static PISyncer syncer;
+
 		static ATSPI_IF()//TypeInitializationException
 		{
 #if DEBUG
 			if (!System.Diagnostics.Debugger.IsAttached)
 				System.Diagnostics.Debugger.Launch();//Not Called
 #endif
+			try
+			{
+				syncer = new PISyncer(ConstValues.SyncerSMemFileName);
+			}catch(Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine(ex);
+			}
 		}
 
 		static private void ExecFuncParallel(Action<int> FuncToExec)
@@ -24,34 +35,37 @@ namespace PIAdapterCS
 				Task.Delay(1);//タスクの終了待機
 		}
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void Load()
 		{
 			System.Diagnostics.Debug.WriteLine("PIAdapterCS ATSPI_IF Load");
-			
-			syncer = new PISyncer(ConstValues.SyncerSMemFileName);
-			if (AtsPIClassSelector.GetAtsPluginInstance("TR.BIDSSMemLib.bve5.x64.dll", STPI.Count, syncer) is IAtsPI pi)
-				STPI.Add(pi);
-
+			try
+			{
+				if (AtsPIClassSelector.GetAtsPluginInstance("TR.BIDSSMemLib.bve5.x64.dll", STPI.Count, syncer) is IAtsPI pi)//////////TO DEBUG
+					STPI.Add(pi);
+			}catch(Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine(ex);
+				return;
+			}
 			ExecFuncParallel((i) => STPI[i].Load());
 		}
 
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void Dispose()
 		{
 			ExecFuncParallel((i) => STPI[i].Dispose());
-			syncer?.Dispose();
 			STPI.Clear();
 		}
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void DoorClose() => ExecFuncParallel((i) => STPI[i].DoorClose());
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void DoorOpen() => ExecFuncParallel((i) => STPI[i].DoorOpen());
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public Hand Elapse(State s, IntPtr Pa, IntPtr So)
 		{
 			Hand retH = new Hand();
@@ -74,30 +88,30 @@ namespace PIAdapterCS
 			return retH;
 		}
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public uint GetPluginVersion()
 		{
 			ExecFuncParallel((i) => STPI[i].GetPluginVersion());
 			return ConstValues.ATSPI_IF_GetPIVersion;
 		}
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void HornBlow(int k) => ExecFuncParallel((i) => STPI[i].HornBlow(k));
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void Initialize(int s)
 		{
 			System.Diagnostics.Debug.WriteLine("PIAdapterCS ATSPI_IF Initialize");
 			ExecFuncParallel((i) => STPI[i].Initialize(s));
 		}
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void KeyDown(int k) => ExecFuncParallel((i) => STPI[i].KeyDown(k));
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void KeyUp(int k) => ExecFuncParallel((i) => STPI[i].KeyUp(k));
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void SetBeaconData(Beacon b)
 		{
 			System.Diagnostics.Debug.WriteLine("PIAdapterCS ATSPI_IF SetBeaconData (Z:{0}, Num:{1}, Sig:{2}, Data:{3})", b.Z, b.Num, b.Sig, b.Data);
@@ -105,20 +119,20 @@ namespace PIAdapterCS
 			ExecFuncParallel((i) => STPI[i].SetBeaconData(b));
 		}
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void SetBrake(int b) => ExecFuncParallel((i) => STPI[i].SetBrake(b));
 		
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void SetPower(int p) => ExecFuncParallel((i) => STPI[i].SetPower(p));
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void SetReverser(int r) => ExecFuncParallel((i) => STPI[i].SetReverser(r));
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void SetSignal(int s) => ExecFuncParallel((i) => STPI[i].SetSignal(s));
 
-		[DllExport]
+		[DllExport(CallingConvention= CallingConvention.StdCall)]
 		static public void SetVehicleSpec(Spec s) => ExecFuncParallel((i) => STPI[i].SetVehicleSpec(s));
 	}
 }
