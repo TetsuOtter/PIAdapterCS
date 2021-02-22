@@ -1,11 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net20</TargetFramework>
+    <TargetFramework>net45</TargetFramework>
 		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
 		<RootNamespace>TR</RootNamespace>
   </PropertyGroup>
+	
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DebugType>pdbonly</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="IAtsPI" Version="1.0.0.2" />
