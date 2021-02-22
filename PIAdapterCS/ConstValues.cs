@@ -2,7 +2,7 @@
 {
 	static public class ConstValues
 	{
-		static public string SyncerSMemFileName { get; } = System.Reflection.Assembly.GetExecutingAssembly().Location + "SMem.bin";
+		static public string DllDirectory { get; } = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 		static public int WaitCountMS { get; } = 1000;
 		static public bool UseLastHandleOutput { get; } = true;
 		static public int AdapterVersion { get; } = 100;
