@@ -6,6 +6,13 @@
 		<Platforms>x64;x86</Platforms>
   </PropertyGroup>
   <PropertyGroup>
+    <AssemblyName Condition="'$(Platform)'=='x64'">PIAdapterCS.x64</AssemblyName>
+    <AssemblyName Condition="'$(Platform)'=='x86'">PIAdapterCS.x86</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Label="8337224c9ad9e356:PreProc">
+    <DebugType Condition="'$(DebugType)'!='full' And '$(DebugType)'!='pdbonly'" Label="8337224c9ad9e356:PreProc">pdbonly</DebugType>
+  </PropertyGroup>
+  <PropertyGroup>
     <DllExportIdent>4800DCF6-C5F4-47A0-9C5E-5B68C1E2D397</DllExportIdent>
     <DllExportMetaLibName>DllExport.dll</DllExportMetaLibName>
     <DllExportNamespace>PIAdapterCS</DllExportNamespace>
@@ -20,7 +27,7 @@
     <DllExportTimeout>30000</DllExportTimeout>
     <DllExportPeCheck>2</DllExportPeCheck>
     <DllExportPatches>0</DllExportPatches>
-    <DllExportPreProcType>0</DllExportPreProcType>
+    <DllExportPreProcType>25</DllExportPreProcType>
     <DllExportPostProcType>0</DllExportPostProcType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -37,19 +44,23 @@
     </PackageReference>
 		<PackageReference Include="IAtsPI" Version="1.0.0.2" />
     <PackageReference Include="ILMerge" Version="3.0.41" />
+    <PackageReference Include="ilmerge">
+      <Version>3.0.29</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ATSPISyncer\ATSPISyncer.csproj" />
     <ProjectReference Include="..\SameTargetAtsPILoader\SameTargetAtsPILoader.csproj" />
   </ItemGroup>
-	<!--<Target Condition="'$(Platform)' == 'x86' Or '$(Platform)' == 'x64'" Name="DllExportPreProc" BeforeTargets="DllExportMod" Label="8337224c9ad9e356:PreProc">
-		<Copy SourceFiles="$(DllExportMetaLibFullPath)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
-		<Exec Command="$(ILMergeConsolePath) /target:dll /lib:$(TargetDir) $(TargetFileName) IAtsPI.dll /out:$(AssemblyName).$(Platform).dll" WorkingDirectory="$(TargetDir)" ContinueOnError="false" />
-		<Move SourceFiles="$(TargetDir)$(TargetFileName).ilm0.dll" DestinationFiles="$(TargetDir)$(TargetFileName)" OverwriteReadOnlyFiles="true" ContinueOnError="false" />-->
-		<!--<Delete Files="$(TargetDir)$(DllExportMetaLibName)" ContinueOnError="true" />
-	</Target>
-	<Target Name="DllExportPreProcAfter" AfterTargets="DllExportMod" Label="8337224c9ad9e356:PreProc">
-		<Delete Files="$(TargetDir)$(TargetFileName).ilm0.pdb" ContinueOnError="true" />
-	</Target>-->
+  <Target Name="DllExportPreProc" BeforeTargets="DllExportMod" Label="8337224c9ad9e356:PreProc">
+    <Copy SourceFiles="$(DllExportMetaLibFullPath)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
+    <Exec Command="$(ILMergeConsolePath) $(TargetFileName) IAtsPI.dll ATSPISyncer.dll SameTargetAtsPILoader.dll /out:$(TargetFileName).ilm0.dll" WorkingDirectory="$(TargetDir)" ContinueOnError="true" />
+    <Move SourceFiles="$(TargetDir)$(TargetFileName).ilm0.dll" DestinationFiles="$(TargetDir)$(TargetFileName)" OverwriteReadOnlyFiles="true" ContinueOnError="true" />
+    <Delete Files="$(TargetDir)$(DllExportMetaLibName)" ContinueOnError="true" />
+  </Target>
+  <Target Name="DllExportPreProcAfter" AfterTargets="DllExportMod" Label="8337224c9ad9e356:PreProc">
+    <Delete Files="$(TargetDir)$(TargetFileName).ilm0.pdb" ContinueOnError="true" />
+  </Target>
   <ImportGroup Label=".NET DllExport">
     <Import Project="$(SolutionDir)packages\DllExport.1.7.4\tools\net.r_eg.DllExport.targets" Condition="Exists($([MSBuild]::Escape('$(SolutionDir)packages\DllExport.1.7.4\tools\net.r_eg.DllExport.targets')))" Label="8337224c9ad9e356" />
   </ImportGroup>
