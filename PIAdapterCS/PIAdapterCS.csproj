@@ -3,10 +3,11 @@
     <TargetFramework>net45</TargetFramework>
 		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Platforms>x64;x86</Platforms>
+		<Platforms>x64;x86;AnyCPU</Platforms>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyName Condition="'$(Platform)'=='x64'">PIAdapterCS.x64</AssemblyName>
+    <AssemblyName Condition="'$(Platform)'=='AnyCPU'">PIAdapterCS.x64</AssemblyName>
     <AssemblyName Condition="'$(Platform)'=='x86'">PIAdapterCS.x86</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Label="8337224c9ad9e356:PreProc">
@@ -33,6 +34,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
@@ -52,7 +56,7 @@
     <ProjectReference Include="..\ATSPISyncer\ATSPISyncer.csproj" />
     <ProjectReference Include="..\SameTargetAtsPILoader\SameTargetAtsPILoader.csproj" />
   </ItemGroup>
-  <Target Name="DllExportPreProc" BeforeTargets="DllExportMod" Label="8337224c9ad9e356:PreProc">
+  <Target Name="DllExportPreProc" BeforeTargets="DllExportMod" Label="8337224c9ad9e356:PreProc" Condition="'$(Platform)'=='x86' Or '$(Platform)'=='x64'">
     <Copy SourceFiles="$(DllExportMetaLibFullPath)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
     <Exec Command="$(ILMergeConsolePath) $(TargetFileName) IAtsPI.dll ATSPISyncer.dll SameTargetAtsPILoader.dll /out:$(TargetFileName).ilm0.dll" WorkingDirectory="$(TargetDir)" ContinueOnError="true" />
     <Move SourceFiles="$(TargetDir)$(TargetFileName).ilm0.dll" DestinationFiles="$(TargetDir)$(TargetFileName)" OverwriteReadOnlyFiles="true" ContinueOnError="true" />
