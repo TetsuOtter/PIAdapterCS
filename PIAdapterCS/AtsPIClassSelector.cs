@@ -24,7 +24,7 @@ namespace PIAdapterCS
 			return null;
 		}
 
-		private static IAtsPI? CreateInstanceFromDll(in string path,in int index,in PISyncer syncer)
+		private static IAtsPI? CreateInstanceFromDll(in string path, in int index, in PISyncer syncer)
 		{
 			ExecutableFileTargetChecker target = ExecutableFileTargetChecker.Check(path);
 			if (!target.LoadSuccessed)
@@ -42,13 +42,15 @@ namespace PIAdapterCS
 
 		private static IAtsPI? CreateInstanceForX86Dll(in string path, in int index, in PISyncer syncer)
 			=> Environment.Is64BitProcess ? //X86 dllは, 
-			new DifferentTargetATSPI(PIAdapter_Loader_X86_Path, GetDifferentT_ArgString(path, index, syncer), syncer, index) //x64プロセスではDifferentTarget
+			null //DifferentTargetは暫定的に非対応
+			//new DifferentTargetATSPI(PIAdapter_Loader_X86_Path, GetDifferentT_ArgString(path, index, syncer), syncer, index) //x64プロセスではDifferentTarget
 			: TR.SameTargetATSPILoader.LoadNativeOrClrPI(path); //x86プロセスではSameTarget
 
 		private static IAtsPI? CreateInstanceForX64Dll(in string path, in int index, in PISyncer syncer)
 			=> Environment.Is64BitProcess
 			? TR.SameTargetATSPILoader.LoadNativeOrClrPI(path) //x64 dllは, x64プロセスではSameTarget
-			: new DifferentTargetATSPI(PIAdapter_Loader_X64_Path, GetDifferentT_ArgString(path, index, syncer), syncer, index);//x86プロセスではDifferentTarget
+			: null;//DifferentTargetは暫定的に非対応
+			//new DifferentTargetATSPI(PIAdapter_Loader_X64_Path, GetDifferentT_ArgString(path, index, syncer), syncer, index);//x86プロセスではDifferentTarget
 
 		private static string GetDifferentT_ArgString(in string path, in int index, in PISyncer syncer)
 			=> $"-module \"{path}\" -mmf \"{syncer.MMF_NameSuffix}\" -adpv {ConstValues.AdapterVersion} -index {index}";
